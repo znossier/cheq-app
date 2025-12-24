@@ -15,6 +15,7 @@ struct ConfirmReceiptView: View {
     @State private var editingItemPrice = ""
     @State private var editingItemQuantity = ""
     @State private var currency = StorageService.shared.loadCurrency()
+    @State private var showDebugView = false
     let isPreviewMode: Bool
     let onRetry: (() -> Void)?
     
@@ -127,6 +128,16 @@ struct ConfirmReceiptView: View {
             .navigationTitle("Confirm Receipt")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                #if DEBUG
+                ToolbarItem(placement: .navigationBarLeading) {
+                    if let debugData = viewModel.ocrResult.debugData {
+                        Button("Debug") {
+                            showDebugView = true
+                        }
+                    }
+                }
+                #endif
+                
                 ToolbarItem(placement: .primaryAction) {
                     Button("Confirm") {
                         navigateToAddPeople = true
@@ -134,6 +145,22 @@ struct ConfirmReceiptView: View {
                     .disabled(!viewModel.isValid)
                 }
             }
+            #if DEBUG
+            .sheet(isPresented: $showDebugView) {
+                if let debugData = viewModel.ocrResult.debugData {
+                    NavigationStack {
+                        DebugReceiptView(debugData: debugData)
+                            .toolbar {
+                                ToolbarItem(placement: .cancellationAction) {
+                                    Button("Close") {
+                                        showDebugView = false
+                                    }
+                                }
+                            }
+                    }
+                }
+            }
+            #endif
             .navigationDestination(isPresented: $navigateToAddPeople) {
                 AddPeopleView(receipt: viewModel.receipt)
             }

@@ -30,6 +30,11 @@ class ScanViewModel: ObservableObject {
     }
     
     func processVideoFrame(_ image: UIImage) {
+        // Live scanning disabled during pipeline hardening
+        guard Constants.enableLiveScanning else {
+            return
+        }
+        
         // Respect state - don't process frames in certain states
         guard scanningState == .searchingForReceipt || scanningState == .receiptCandidateDetected || scanningState == .stableReceiptConfirmed else {
             return
@@ -94,17 +99,18 @@ class ScanViewModel: ObservableObject {
                         // Receipt is stable
                         if self.scanningState == .receiptCandidateDetected {
                             self.scanningState = .stableReceiptConfirmed
-                            // Trigger haptic feedback once when entering stable state
-                            let generator = UINotificationFeedbackGenerator()
-                            generator.notificationOccurred(.success)
+                            // Haptic feedback disabled during pipeline hardening
+                            // let generator = UINotificationFeedbackGenerator()
+                            // generator.notificationOccurred(.success)
                         }
                         
+                        // Auto-capture disabled during pipeline hardening
                         // Check if stable long enough for auto-capture
-                        if let startTime = self.stabilityStartTime,
-                           Date().timeIntervalSince(startTime) >= Constants.scanningStabilityDuration {
-                            // Auto-capture!
-                            self.autoCapture(image: image)
-                        }
+                        // if let startTime = self.stabilityStartTime,
+                        //    Date().timeIntervalSince(startTime) >= Constants.scanningStabilityDuration {
+                        //     // Auto-capture!
+                        //     self.autoCapture(image: image)
+                        // }
                     } else {
                         // Not stable, reset
                         self.scanningState = .receiptCandidateDetected
@@ -166,6 +172,12 @@ class ScanViewModel: ObservableObject {
     }
     
     private func autoCapture(image: UIImage) {
+        // Auto-capture disabled during pipeline hardening
+        // This method is kept for potential future re-enablement
+        guard Constants.enableLiveScanning else {
+            return
+        }
+        
         scanningState = .capturedAndProcessing
         frozenImage = image
         
@@ -188,8 +200,35 @@ class ScanViewModel: ObservableObject {
         }
     }
     
+    func manualCapture(image: UIImage) {
+        // Manual capture for when live scanning is disabled
+        scanningState = .capturedAndProcessing
+        frozenImage = image
+        isLoading = true
+        errorMessage = nil
+        
+        Task {
+            do {
+                // Use unified processing method
+                let result = try await ocrService.processImageUnified(image, sourceType: "live")
+                await MainActor.run {
+                    self.scanResult = result
+                    self.scanningState = .preview
+                    self.isLoading = false
+                }
+            } catch {
+                await MainActor.run {
+                    self.errorMessage = "Failed to process receipt. Please try again."
+                    self.scanningState = .searchingForReceipt
+                    self.frozenImage = nil
+                    self.isLoading = false
+                }
+            }
+        }
+    }
+    
     func processImage(_ image: UIImage) {
-        // Legacy method for manual image selection (from photo library)
+        // Method for manual image selection (from photo library or camera)
         isLoading = true
         errorMessage = nil
         scanningState = .capturedAndProcessing
@@ -197,7 +236,8 @@ class ScanViewModel: ObservableObject {
         
         Task {
             do {
-                let result = try await ocrService.processImage(image)
+                // Use unified processing method
+                let result = try await ocrService.processImageUnified(image, sourceType: "uploaded")
                 await MainActor.run {
                     self.scanResult = result
                     self.scanningState = .preview

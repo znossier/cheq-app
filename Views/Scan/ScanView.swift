@@ -17,6 +17,7 @@ struct ScanView: View {
     @State private var sourceType: UIImagePickerController.SourceType = .camera
     @State private var navigateToConfirm = false
     @State private var ocrResult: OCRResult?
+    @State private var cameraController: CameraViewController?
     
     var body: some View {
         NavigationStack {
@@ -29,11 +30,34 @@ struct ScanView: View {
                             .foregroundColor(.secondary)
                     }
                 } else {
-                    CameraView(onFrameCaptured: { image in
-                        viewModel.processVideoFrame(image)
-                    })
+                    CameraView(
+                        onFrameCaptured: { image in
+                            viewModel.processVideoFrame(image)
+                        },
+                        onManualCapture: { image in
+                            viewModel.manualCapture(image: image)
+                        },
+                        enableLiveScanning: Constants.enableLiveScanning,
+                        controllerRef: $cameraController
+                    )
                     .overlay(alignment: .top) {
                         ScanningOverlayView(viewModel: viewModel)
+                    }
+                    .overlay(alignment: .bottom) {
+                        if !Constants.enableLiveScanning {
+                            VStack(spacing: 16) {
+                                Button(action: {
+                                    cameraController?.capturePhoto()
+                                }) {
+                                    Image(systemName: "camera.circle.fill")
+                                        .font(.system(size: 60))
+                                        .foregroundColor(.white)
+                                        .background(Color.blue)
+                                        .clipShape(Circle())
+                                }
+                                .padding(.bottom, 40)
+                            }
+                        }
                     }
                 }
             }
@@ -96,22 +120,37 @@ struct ScanView: View {
 
 struct CameraView: UIViewControllerRepresentable {
     let onFrameCaptured: (UIImage) -> Void
+    let onManualCapture: (UIImage) -> Void
+    let enableLiveScanning: Bool
+    @Binding var controllerRef: CameraViewController?
     
     func makeUIViewController(context: Context) -> CameraViewController {
         let controller = CameraViewController()
         controller.onFrameCaptured = onFrameCaptured
+        controller.onManualCapture = onManualCapture
+        controller.enableLiveScanning = enableLiveScanning
+        DispatchQueue.main.async {
+            controllerRef = controller
+        }
         return controller
     }
     
-    func updateUIViewController(_ uiViewController: CameraViewController, context: Context) {}
+    func updateUIViewController(_ uiViewController: CameraViewController, context: Context) {
+        uiViewController.onManualCapture = onManualCapture
+        uiViewController.enableLiveScanning = enableLiveScanning
+    }
 }
 
 class CameraViewController: UIViewController {
     var onFrameCaptured: ((UIImage) -> Void)?
+    var onManualCapture: ((UIImage) -> Void)?
+    var enableLiveScanning: Bool = false
     private var captureSession: AVCaptureSession?
     private var previewLayer: AVCaptureVideoPreviewLayer?
     private var videoOutput: AVCaptureVideoDataOutput?
+    private var photoOutput: AVCapturePhotoOutput?
     private let videoQueue = DispatchQueue(label: "com.fairshare.videoQueue")
+    private var lastCapturedImage: UIImage?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -120,15 +159,22 @@ class CameraViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        // Ensure starting the session happens off the main thread to avoid UI stalls
         if let session = captureSession, !session.isRunning {
-            session.startRunning()
+            DispatchQueue.global(qos: .userInitiated).async {
+                session.startRunning()
+            }
         }
         updatePreviewLayerFrame()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        captureSession?.stopRunning()
+        if let session = captureSession, session.isRunning {
+            DispatchQueue.global(qos: .userInitiated).async {
+                session.stopRunning()
+            }
+        }
     }
     
     override func viewDidLayoutSubviews() {
@@ -142,7 +188,8 @@ class CameraViewController: UIViewController {
     
     private func setupCamera() {
         let session = AVCaptureSession()
-        session.sessionPreset = .high
+        // Use .photo for maximum quality when capturing full-resolution images
+        session.sessionPreset = .photo
         
         guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
               let input = try? AVCaptureDeviceInput(device: videoDevice),
@@ -152,13 +199,23 @@ class CameraViewController: UIViewController {
         
         session.addInput(input)
         
-        let output = AVCaptureVideoDataOutput()
-        output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
-        output.setSampleBufferDelegate(self, queue: videoQueue)
+        // Add photo output for manual capture (full resolution)
+        let photoOutput = AVCapturePhotoOutput()
+        if session.canAddOutput(photoOutput) {
+            session.addOutput(photoOutput)
+            self.photoOutput = photoOutput
+        }
         
-        if session.canAddOutput(output) {
-            session.addOutput(output)
-            self.videoOutput = output
+        // Add video output only if live scanning is enabled
+        if enableLiveScanning {
+            let output = AVCaptureVideoDataOutput()
+            output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
+            output.setSampleBufferDelegate(self, queue: videoQueue)
+            
+            if session.canAddOutput(output) {
+                session.addOutput(output)
+                self.videoOutput = output
+            }
         }
         
         let previewLayer = AVCaptureVideoPreviewLayer(session: session)
@@ -169,10 +226,19 @@ class CameraViewController: UIViewController {
         self.captureSession = session
         self.previewLayer = previewLayer
     }
+    
+    func capturePhoto() {
+        guard let photoOutput = photoOutput else { return }
+        // Use default settings - they already provide maximum quality
+        let settings = AVCapturePhotoSettings()
+        photoOutput.capturePhoto(with: settings, delegate: self)
+    }
 }
 
 extension CameraViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+        guard enableLiveScanning else { return }
+        
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             return
         }
@@ -187,6 +253,23 @@ extension CameraViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
         
         DispatchQueue.main.async {
             self.onFrameCaptured?(image)
+        }
+    }
+}
+
+extension CameraViewController: AVCapturePhotoCaptureDelegate {
+    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+        guard error == nil,
+              let imageData = photo.fileDataRepresentation(),
+              let image = UIImage(data: imageData) else {
+            return
+        }
+        
+        // Store full-resolution image
+        lastCapturedImage = image
+        
+        DispatchQueue.main.async {
+            self.onManualCapture?(image)
         }
     }
 }

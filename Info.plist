@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>FairShare</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.fairshare.app</string>
+	<string>com.zeinanosier.fairshare</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
 	<key>CFBundleURLTypes</key>
