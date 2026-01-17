@@ -1,6 +1,6 @@
 //
 //  ScanningState.swift
-//  FairShare
+//  Cheq
 //
 //  Scanning state machine and supporting types
 //
@@ -22,11 +22,13 @@ struct ReceiptCandidate: Equatable {
     let confidenceScore: Double
     let detectedText: String
     let timestamp: Date
+    let imageSize: CGSize // Image size for coordinate conversion
     
-    init(boundingRectangle: CGRect, confidenceScore: Double, detectedText: String, timestamp: Date = Date()) {
+    init(boundingRectangle: CGRect, confidenceScore: Double, detectedText: String, imageSize: CGSize, timestamp: Date = Date()) {
         self.boundingRectangle = boundingRectangle
         self.confidenceScore = confidenceScore
         self.detectedText = detectedText
+        self.imageSize = imageSize
         self.timestamp = timestamp
     }
 }

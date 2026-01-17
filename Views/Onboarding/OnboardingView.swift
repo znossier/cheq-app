@@ -1,6 +1,6 @@
 //
 //  OnboardingView.swift
-//  FairShare
+//  Cheq
 //
 //  Onboarding carousel with 3 screens
 //
@@ -14,66 +14,72 @@ struct OnboardingView: View {
     private let pages = [
         OnboardingPage(
             title: "Scan receipts instantly",
-            description: "Point your camera at any receipt and we'll extract all the details automatically.",
-            icon: "camera.fill"
+            description: "Cheq extracts all item details automatically.",
+            icon: "doc.text.viewfinder"
         ),
         OnboardingPage(
-            title: "Split fairly, not evenly",
-            description: "Assign items to people and we'll calculate everyone's fair share, including VAT and service fees.",
-            icon: "person.2.fill"
+            title: "Calculated proportionately",
+            description: "Tax and service are allocated based on item shares.",
+            icon: "divide"
         ),
         OnboardingPage(
-            title: "Know exactly who owes what",
-            description: "Get a clear breakdown for each person and share it instantly with your group.",
-            icon: "checkmark.circle.fill"
+            title: "Know who owes what",
+            description: "Clear totals for everyone before you settle.",
+            icon: "checkmark.circle"
         )
     ]
     
     var body: some View {
-        ZStack {
-            Color(.systemBackground)
-                .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                // Skip button
-                HStack {
-                    Spacer()
-                    Button("Skip") {
-                        completeOnboarding()
-                    }
-                    .padding()
-                }
+        GeometryReader { geometry in
+            ZStack {
+                // Background extends behind safe areas
+                Color.appBackground
+                    .ignoresSafeArea()
                 
-                // Carousel
-                TabView(selection: $currentPage) {
-                    ForEach(0..<pages.count, id: \.self) { index in
-                        OnboardingPageView(page: pages[index])
-                            .tag(index)
-                    }
-                }
-                .tabViewStyle(.page)
-                .indexViewStyle(.page(backgroundDisplayMode: .always))
-                
-                // Continue button
-                Button(action: {
-                    if currentPage < pages.count - 1 {
-                        withAnimation {
-                            currentPage += 1
+                // Content respects safe areas
+                VStack(spacing: 0) {
+                    // Skip button - add safe area top padding
+                    HStack {
+                        Spacer()
+                        Button("Skip") {
+                            completeOnboarding()
                         }
-                    } else {
-                        completeOnboarding()
+                        .padding(.horizontal)
+                        .padding(.vertical, 8)
                     }
-                }) {
-                    Text(currentPage < pages.count - 1 ? "Next" : "Get Started")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(12)
+                    .padding(.top, geometry.safeAreaInsets.top > 0 ? geometry.safeAreaInsets.top + 8 : 8)
+                    
+                    // Carousel
+                    TabView(selection: $currentPage) {
+                        ForEach(0..<pages.count, id: \.self) { index in
+                            OnboardingPageView(page: pages[index])
+                                .tag(index)
+                        }
+                    }
+                    .tabViewStyle(.page)
+                    .indexViewStyle(.page(backgroundDisplayMode: .always))
+                    
+                    // Continue button - add safe area bottom padding
+                    Button(action: {
+                        if currentPage < pages.count - 1 {
+                            withAnimation {
+                                currentPage += 1
+                            }
+                        } else {
+                            completeOnboarding()
+                        }
+                    }) {
+                        Text(currentPage < pages.count - 1 ? "Next" : "Start Cheq")
+                            .font(.headline)
+                            .foregroundColor(currentPage < pages.count - 1 ? .appTextPrimary : .appButtonTextOnMint)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(currentPage < pages.count - 1 ? Color.appSurface : Color.appMint)
+                            .cornerRadius(12)
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, geometry.safeAreaInsets.bottom > 0 ? geometry.safeAreaInsets.bottom + 16 : 16)
                 }
-                .padding(.horizontal)
-                .padding(.bottom)
             }
         }
     }
@@ -100,8 +106,8 @@ struct OnboardingPageView: View {
             Spacer()
             
             Image(systemName: page.icon)
-                .font(.system(size: 80))
-                .foregroundColor(.blue)
+                .font(.system(size: 80, weight: .medium))
+                .foregroundColor(.appTextSecondary)
             
             VStack(spacing: 16) {
                 Text(page.title)
@@ -110,7 +116,7 @@ struct OnboardingPageView: View {
                 
                 Text(page.description)
                     .font(.body)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.appTextSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
             }

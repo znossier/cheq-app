@@ -39,7 +39,7 @@ for swift_file in sorted(base_path.rglob("*.swift")):
     swift_files.append((rel_path, file_uuid))
 
 # Create group structure
-groups["FairShare"] = generate_uuid()
+groups["Cheq"] = generate_uuid()
 groups["Models"] = generate_uuid()
 groups["Services"] = generate_uuid()
 groups["ViewModels"] = generate_uuid()
@@ -60,6 +60,11 @@ groups["Summary"] = generate_uuid()
 sources_phase_uuid = generate_uuid()
 frameworks_phase_uuid = generate_uuid()
 resources_phase_uuid = generate_uuid()
+
+# Additional UUIDs that need to be reused
+products_group_uuid = generate_uuid()
+root_group_uuid = generate_uuid()
+project_object_uuid = generate_uuid()
 
 # Generate project.pbxproj content
 pbxproj = f"""// !$*UTF8*$!
@@ -297,7 +302,7 @@ pbxproj += f"""			);
 			path = Extensions;
 			sourceTree = "<group>";
 		}};
-		{generate_uuid()} /* Products */ = {{
+		{products_group_uuid} /* Products */ = {{
 			isa = PBXGroup;
 			children = (
 				{project_uuid} /* FairShare.app */,
@@ -305,11 +310,11 @@ pbxproj += f"""			);
 			name = Products;
 			sourceTree = "<group>";
 		}};
-		{generate_uuid()} = {{
+		{root_group_uuid} = {{
 			isa = PBXGroup;
 			children = (
 				{groups["FairShare"]} /* FairShare */,
-				{generate_uuid()} /* Products */,
+				{products_group_uuid} /* Products */,
 			);
 			sourceTree = "<group>";
 		}};
@@ -339,7 +344,7 @@ pbxproj += f"""			);
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		{generate_uuid()} /* Project object */ = {{
+		{project_object_uuid} /* Project object */ = {{
 			isa = PBXProject;
 			attributes = {{
 				BuildIndependentTargetsInParallel = 1;
@@ -359,11 +364,11 @@ pbxproj += f"""			);
 				en,
 				Base,
 			);
-			mainGroup = {generate_uuid()};
+			mainGroup = {root_group_uuid};
 			packageReferences = (
 				{package_ref_uuid} /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
-			productRefGroup = {generate_uuid()} /* Products */;
+			productRefGroup = {products_group_uuid} /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -507,7 +512,7 @@ pbxproj += f"""			);
 		}};
 /* End XCSwiftPackageProductDependency section */
 	}};
-	rootObject = {generate_uuid()} /* Project object */;
+	rootObject = {project_object_uuid} /* Project object */;
 }}
 """
 

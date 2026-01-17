@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- CloudKit is optional - only works with paid Apple Developer account -->
+	<!-- For free accounts, this file can be empty or removed -->
+	<!-- The app will automatically use local-only Core Data if CloudKit is unavailable -->
+</dict>
+</plist>
+

@@ -1,6 +1,6 @@
 //
 //  AuthViewModel.swift
-//  FairShare
+//  Cheq
 //
 //  Authentication view model
 //
@@ -37,12 +37,12 @@ class AuthViewModel: ObservableObject {
         Task {
             do {
                 try await authService.signIn(with: rootViewController)
-                isAuthenticated = authService.isAuthenticated
-                currentUser = authService.currentUser
-                isLoading = false
+                self.isAuthenticated = self.authService.isAuthenticated
+                self.currentUser = self.authService.currentUser
+                self.isLoading = false
             } catch {
-                errorMessage = "Sign in failed. Please try again."
-                isLoading = false
+                self.errorMessage = "Sign in failed. Please try again."
+                self.isLoading = false
             }
         }
     }

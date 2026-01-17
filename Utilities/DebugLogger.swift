@@ -1,6 +1,6 @@
 //
 //  DebugLogger.swift
-//  FairShare
+//  Cheq
 //
 //  Debug logging utility for OCR pipeline
 //

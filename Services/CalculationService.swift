@@ -1,6 +1,6 @@
 //
 //  CalculationService.swift
-//  FairShare
+//  Cheq
 //
 //  Service for calculating fair bill splits
 //

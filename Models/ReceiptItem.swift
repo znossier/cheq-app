@@ -1,6 +1,6 @@
 //
 //  ReceiptItem.swift
-//  FairShare
+//  Cheq
 //
 //  Receipt item model with quantity support
 //

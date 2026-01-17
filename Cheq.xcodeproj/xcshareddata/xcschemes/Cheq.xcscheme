@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "7FB8C3E5112D44BBBE788EF4"
-               BuildableName = "FairShare.app"
-               BlueprintName = "FairShare"
-               ReferencedContainer = "container:FairShare.xcodeproj">
+               BuildableName = "Cheq.app"
+               BlueprintName = "Cheq"
+               ReferencedContainer = "container:Cheq.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -44,9 +44,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "7FB8C3E5112D44BBBE788EF4"
-            BuildableName = "FairShare.app"
-            BlueprintName = "FairShare"
-            ReferencedContainer = "container:FairShare.xcodeproj">
+            BuildableName = "Cheq.app"
+            BlueprintName = "Cheq"
+            ReferencedContainer = "container:Cheq.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -61,9 +61,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "7FB8C3E5112D44BBBE788EF4"
-            BuildableName = "FairShare.app"
-            BlueprintName = "FairShare"
-            ReferencedContainer = "container:FairShare.xcodeproj">
+            BuildableName = "Cheq.app"
+            BlueprintName = "Cheq"
+            ReferencedContainer = "container:Cheq.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

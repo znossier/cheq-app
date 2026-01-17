@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDisplayName</key>
-	<string>FairShare</string>
+	<string>Cheq</string>
 	<key>CFBundleExecutable</key>
-	<string>FairShare</string>
+	<string>Cheq</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.zeinanosier.fairshare</string>
+	<string>com.zeinanosier.cheq</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
 	<key>CFBundleURLTypes</key>
@@ -17,7 +17,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.232244363828-poj3iprncch67aoi800uptrasgel2qjc</string>
+				<string>com.googleusercontent.apps.787819429630-khd6bejk34llguqe77agj8kd0pqcse4v</string>
 			</array>
 		</dict>
 	</array>
@@ -26,9 +26,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>FairShare needs access to your camera to scan receipts.</string>
+	<string>Cheq needs access to your camera to scan receipts.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>FairShare needs access to your photo library to select receipt images.</string>
+	<string>Cheq needs access to your photo library to select receipt images.</string>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>
@@ -37,11 +39,16 @@
 	<true/>
 	<key>UIStatusBarStyle</key>
 	<string></string>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
 </dict>
 </plist>

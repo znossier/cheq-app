@@ -1,6 +1,6 @@
 //
 //  DebugReceiptView.swift
-//  FairShare
+//  Cheq
 //
 //  Debug view for OCR pipeline - development builds only
 //
@@ -54,7 +54,7 @@ struct DebugReceiptView: View {
                         HStack {
                             Text("#\(index + 1)")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(.appTextSecondary)
                             Text(topCandidate.string)
                                 .font(.body)
                             Spacer()
@@ -65,10 +65,10 @@ struct DebugReceiptView: View {
                         
                         Text("Bounds: \(formatRect(observation.boundingBox))")
                             .font(.caption2)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.appTextSecondary)
                     }
                     .padding()
-                    .background(Color.gray.opacity(0.1))
+                    .background(Color.appSurface.opacity(0.5))
                     .cornerRadius(8)
                     .padding(.horizontal)
                 }
@@ -88,7 +88,7 @@ struct DebugReceiptView: View {
                     HStack {
                         Text("#\(index + 1)")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.appTextSecondary)
                         Text(line.text)
                             .font(.body)
                         Spacer()
@@ -98,14 +98,19 @@ struct DebugReceiptView: View {
                     }
                     
                     if let classification = line.classification {
-                        Label(classification.rawValue, systemImage: classificationIcon(classification))
-                            .font(.caption)
-                            .foregroundColor(classificationColor(classification))
+                        Label {
+                            Text(classification.rawValue)
+                        } icon: {
+                            Image.lucide(classificationIcon(classification), size: 14)
+                                .foregroundColor(classificationColor(classification))
+                        }
+                        .font(.caption)
+                        .foregroundColor(classificationColor(classification))
                     }
                     
                     Text("Reason: \(line.classificationReason)")
                         .font(.caption2)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.appTextSecondary)
                     
                     if line.excluded, let reason = line.exclusionReason {
                         Text("EXCLUDED: \(reason)")
@@ -115,10 +120,10 @@ struct DebugReceiptView: View {
                     
                     Text("Bounds: \(formatRect(line.boundingBox))")
                         .font(.caption2)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.appTextSecondary)
                 }
                 .padding()
-                .background(line.excluded ? Color.red.opacity(0.1) : Color.gray.opacity(0.1))
+                .background(line.excluded ? Color.red.opacity(0.1) : Color.appSurface.opacity(0.5))
                 .cornerRadius(8)
                 .padding(.horizontal)
             }
@@ -158,7 +163,7 @@ struct DebugReceiptView: View {
     private func classificationColor(_ classification: BoundingBoxClassification) -> Color {
         switch classification {
         case .lineItem:
-            return .blue
+            return .appPrimary
         case .subtotal:
             return .orange
         case .tax:
@@ -166,22 +171,22 @@ struct DebugReceiptView: View {
         case .service:
             return .purple
         case .total:
-            return .green
+            return .appSuccess
         }
     }
     
     private func classificationIcon(_ classification: BoundingBoxClassification) -> String {
         switch classification {
         case .lineItem:
-            return "list.bullet"
+            return "list"
         case .subtotal:
-            return "sum"
+            return "sigma"
         case .tax:
             return "percent"
         case .service:
             return "star"
         case .total:
-            return "checkmark.circle"
+            return "check-circle"
         }
     }
     

@@ -1,6 +1,6 @@
 //
 //  AuthService.swift
-//  FairShare
+//  Cheq
 //
 //  Google Sign-In authentication service
 //

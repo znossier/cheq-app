@@ -1,6 +1,6 @@
 //
 //  AssignItemsView.swift
-//  FairShare
+//  Cheq
 //
 //  Assign items to people screen
 //
@@ -47,7 +47,7 @@ struct AssignItemsView: View {
                                         .contentTransition(.numericText())
                                 }
                                 .padding()
-                                .background(Color(.systemGray6))
+                                .background(Color.appSurface)
                                 .cornerRadius(8)
                                 .padding(.horizontal)
                                 .animation(.easeInOut(duration: 0.3), value: viewModel.personTotals[person.id])
@@ -89,13 +89,13 @@ struct ItemAssignmentCard: View {
                         .font(.headline)
                     Text(item.unitPrice.formatted(currency: StorageService.shared.loadCurrency()))
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.appTextSecondary)
                 }
                 Spacer()
                 if item.quantity > 1 {
                     Text("×\(item.quantity)")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.appTextSecondary)
                 }
             }
             .padding(.horizontal)
@@ -118,9 +118,9 @@ struct ItemAssignmentCard: View {
             .padding(.horizontal)
             .padding(.bottom)
         }
-        .background(Color(.systemBackground))
+        .background(Color.appSurface)
         .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+        .shadow(color: Color.charcoalBlack.opacity(0.1), radius: 4, x: 0, y: 2)
         .padding(.horizontal)
         .animation(.easeInOut(duration: 0.2), value: viewModel.receipt.items)
         .accessibilityElement(children: .combine)
@@ -139,7 +139,7 @@ struct UnitAssignmentRow: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Unit \(unitNumber)")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(.appTextSecondary)
             
             // Person toggles
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 8) {
@@ -152,8 +152,9 @@ struct UnitAssignmentRow: View {
                         )
                     }) {
                         HStack {
-                            Image(systemName: viewModel.isPersonAssigned(to: itemId, unitIndex: unitIndex, personId: person.id) ? "checkmark.circle.fill" : "circle")
-                                .foregroundColor(viewModel.isPersonAssigned(to: itemId, unitIndex: unitIndex, personId: person.id) ? .blue : .gray)
+                            Image(systemName: viewModel.isPersonAssigned(to: itemId, unitIndex: unitIndex, personId: person.id) ? "checkmark.circle.fill" : "circle.fill")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(viewModel.isPersonAssigned(to: itemId, unitIndex: unitIndex, personId: person.id) ? .appPrimary : .gray)
                             Text(person.name)
                                 .font(.caption)
                         }
@@ -162,7 +163,7 @@ struct UnitAssignmentRow: View {
                         .frame(minHeight: Constants.minimumTapTargetSize)
                         .background(
                             viewModel.isPersonAssigned(to: itemId, unitIndex: unitIndex, personId: person.id) ?
-                            Color.blue.opacity(0.1) : Color(.systemGray6)
+                            Color.appPrimary.opacity(0.1) : Color.appSurface
                         )
                         .cornerRadius(8)
                     }

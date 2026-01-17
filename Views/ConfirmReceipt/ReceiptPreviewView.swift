@@ -1,6 +1,6 @@
 //
 //  ReceiptPreviewView.swift
-//  FairShare
+//  Cheq
 //
 //  Preview component showing frozen receipt image with highlighted bounding boxes
 //
@@ -62,7 +62,7 @@ struct ReceiptPreviewView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Items (\(ocrResult.items.count))")
                                 .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(.appTextSecondary)
                             
                             ForEach(Array(ocrResult.items.prefix(5))) { item in
                                 HStack {
@@ -76,7 +76,7 @@ struct ReceiptPreviewView: View {
                             if ocrResult.items.count > 5 {
                                 Text("... and \(ocrResult.items.count - 5) more")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(.appTextSecondary)
                             }
                         }
                         .padding(.horizontal)
@@ -94,10 +94,10 @@ struct ReceiptPreviewView: View {
                     if let total = ocrResult.total {
                         HStack {
                             Text("Total:")
-                                .fontWeight(.semibold)
+                                .fontWeight(.bold)
                             Spacer()
                             Text(total.formatted(currency: StorageService.shared.loadCurrency()))
-                                .fontWeight(.semibold)
+                                .fontWeight(.bold)
                         }
                         .padding(.horizontal)
                     }
@@ -108,20 +108,20 @@ struct ReceiptPreviewView: View {
                     Button(action: onRetry) {
                         Text("Retry")
                             .font(.headline)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.appPrimary)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.blue.opacity(0.1))
+                            .background(Color.appPrimary.opacity(0.1))
                             .cornerRadius(12)
                     }
                     
                     Button(action: onConfirm) {
                         Text("Confirm")
                             .font(.headline)
-                            .foregroundColor(.white)
+                            .foregroundColor(.appButtonTextOnMint)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.blue)
+                            .background(Color.appPrimary)
                             .cornerRadius(12)
                     }
                 }
@@ -134,7 +134,7 @@ struct ReceiptPreviewView: View {
     private func boxColor(for classification: BoundingBoxClassification) -> Color {
         switch classification {
         case .lineItem:
-            return .blue
+            return .appPrimary
         case .subtotal:
             return .orange
         case .tax:
@@ -142,7 +142,7 @@ struct ReceiptPreviewView: View {
         case .service:
             return .purple
         case .total:
-            return .green
+            return .appMint
         }
     }
 }

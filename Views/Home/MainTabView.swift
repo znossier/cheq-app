@@ -1,6 +1,6 @@
 //
 //  MainTabView.swift
-//  FairShare
+//  Cheq
 //
 //  Main tab bar navigation
 //

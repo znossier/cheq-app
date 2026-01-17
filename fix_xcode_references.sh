@@ -1,0 +1,15 @@
+#!/bin/bash
+echo "Cleaning Xcode derived data..."
+rm -rf ~/Library/Developer/Xcode/DerivedData/*
+echo "✓ Derived data cleared"
+echo ""
+echo "Next steps:"
+echo "1. Close Xcode completely (Cmd+Q)"
+echo "2. Reopen: open /Users/zosman/cheq/Cheq.xcodeproj"
+echo "3. Wait for Xcode to index (watch the progress bar)"
+echo "4. If files still show !, try:"
+echo "   - Select the file with !"
+echo "   - Press Delete"
+echo "   - Choose 'Remove Reference' (NOT 'Move to Trash')"
+echo "   - Right-click the parent folder → 'Add Files to Cheq...'"
+echo "   - Select the file and add it back"

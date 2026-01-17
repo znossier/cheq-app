@@ -1,6 +1,6 @@
 //
 //  Receipt.swift
-//  FairShare
+//  Cheq
 //
 //  Receipt data model
 //

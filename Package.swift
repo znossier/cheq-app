@@ -4,21 +4,21 @@
 import PackageDescription
 
 let package = Package(
-    name: "FairShare",
+    name: "Cheq",
     platforms: [
         .iOS(.v18)
     ],
     products: [
         .library(
-            name: "FairShare",
-            targets: ["FairShare"]),
+            name: "Cheq",
+            targets: ["Cheq"]),
     ],
     dependencies: [
         .package(url: "https://github.com/google/GoogleSignIn-iOS", from: "7.0.0")
     ],
     targets: [
         .target(
-            name: "FairShare",
+            name: "Cheq",
             dependencies: [
                 .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS")
             ]),

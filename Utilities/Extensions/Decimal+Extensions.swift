@@ -1,6 +1,6 @@
 //
 //  Decimal+Extensions.swift
-//  FairShare
+//  Cheq
 //
 //  Decimal formatting extensions
 //

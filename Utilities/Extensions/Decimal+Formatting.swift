@@ -1,6 +1,6 @@
 //
 //  Decimal+Formatting.swift
-//  FairShare
+//  Cheq
 //
 //  Decimal formatting for currency display
 //

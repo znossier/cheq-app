@@ -1,35 +1,42 @@
 //
 //  AuthView.swift
-//  FairShare
+//  Cheq
 //
 //  Authentication screen with Google Sign-In
 //
 
 import SwiftUI
 import GoogleSignIn
+import UIKit
 
 struct AuthView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     
     var body: some View {
         ZStack {
-            Color(.systemBackground)
+            // Background color - uses design system
+            Color.appBackground
                 .ignoresSafeArea()
             
             VStack(spacing: 32) {
                 Spacer()
                 
                 VStack(spacing: 16) {
-                    Image(systemName: "square.split.2x2")
-                        .font(.system(size: 80))
-                        .foregroundColor(.blue)
+                    // App logo: 120 x 72 px
+                    Image("AppLogo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 120, height: 72)
                     
-                    Text("FairShare")
-                        .font(.system(size: 40, weight: .bold, design: .rounded))
+                    // Cheq: SF Pro, Heavy, 32px
+                    Text("Cheq")
+                        .font(.system(size: 32, weight: .heavy, design: .default))
+                        .foregroundColor(.appTextPrimary)
                     
-                    Text("Split your bills fair & square")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                    // Slogan: SF Pro Medium, 14px
+                    Text("Split the cheque. Correctly.")
+                        .font(.system(size: 14, weight: .medium, design: .default))
+                        .foregroundColor(.appTextPrimary)
                 }
                 
                 Spacer()
@@ -41,6 +48,10 @@ struct AuthView: View {
                     } else {
                         GoogleSignInButton(action: {
                             authViewModel.signIn()
+                        })
+                        
+                        AppleSignInButton(action: {
+                            // Placeholder - will implement Sign in with Apple functionality later
                         })
                     }
                     
@@ -59,21 +70,51 @@ struct AuthView: View {
     }
 }
 
+// Google Sign-In button using app's design system with Google logo
 struct GoogleSignInButton: View {
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
-            HStack {
-                Image(systemName: "globe")
-                    .font(.title3)
+            HStack(spacing: 12) {
+                // Google "G" logo - using official logo asset
+                Image("GoogleLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
+                
                 Text("Continue with Google")
                     .font(.headline)
+                    .foregroundColor(.appTextPrimary)
             }
-            .foregroundColor(.white)
             .frame(maxWidth: .infinity)
             .padding()
-            .background(Color.blue)
+            .background(Color.appSurface)
+            .cornerRadius(12)
+        }
+        .frame(minHeight: Constants.minimumTapTargetSize)
+    }
+}
+
+// Apple Sign-In button using app's design system with Apple logo
+struct AppleSignInButton: View {
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                // Apple logo - using SF Symbol
+                Image(systemName: "applelogo")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(.appTextPrimary)
+                
+                Text("Continue with Apple ID")
+                    .font(.headline)
+                    .foregroundColor(.appTextPrimary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.appSurface)
             .cornerRadius(12)
         }
         .frame(minHeight: Constants.minimumTapTargetSize)

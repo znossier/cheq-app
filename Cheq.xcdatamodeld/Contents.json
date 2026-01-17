@@ -1,0 +1,11 @@
+{
+  "com.apple.CoreData.ModelVersionHistory" : {
+    "Cheq.xcdatamodel" : {
+      "_XCCurrentVersionName" : "Cheq.xcdatamodel"
+    }
+  },
+  "com.apple.CoreData.ModelVersionChecksum" : {
+    "Cheq.xcdatamodel" : "0x00000000000000000000000000000000"
+  }
+}
+

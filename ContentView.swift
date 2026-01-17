@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  FairShare
+//  Cheq
 //
 //  Root view that handles navigation based on auth state
 //
@@ -37,6 +37,9 @@ struct ContentView: View {
             .frame(width: geometry.size.width, height: geometry.size.height)
         }
         .ignoresSafeArea()
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ResetOnboarding"))) { _ in
+            showOnboarding = true
+        }
     }
     
     private func checkOnboardingStatus() {

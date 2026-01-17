@@ -1,4 +1,6 @@
-# FairShare iOS MVP
+# Cheq iOS
+
+Split the cheque. Correctly.
 
 A bill splitting app for iOS that scans receipts and calculates fair splits including proportional VAT and service fees.
 

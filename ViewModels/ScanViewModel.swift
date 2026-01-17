@@ -1,6 +1,6 @@
 //
 //  ScanViewModel.swift
-//  FairShare
+//  Cheq
 //
 //  Receipt scanning view model
 //
@@ -23,6 +23,7 @@ class ScanViewModel: ObservableObject {
     private var lastCandidateText: String?
     private var lastCandidateRect: CGRect?
     private var lastFrameProcessTime: Date?
+    private var errorDismissTask: Task<Void, Never>?
     
     init() {
         // Initialize to searching state when view model is created
@@ -72,8 +73,14 @@ class ScanViewModel: ObservableObject {
                 return
             }
             
-            // Step 2: Process OCR within rectangle
-            let (observations, confidence) = try await ocrService.processImageInRectangle(image, rect: bestRectangle)
+            // Step 2: Process OCR using unified method
+            let ocrResult = try await ocrService.processImageUnified(image, sourceType: "live")
+            
+            // Extract text from bounding boxes for stability comparison
+            let detectedText = ocrResult.boundingBoxes.map { $0.text }.joined(separator: " ")
+            
+            // Calculate confidence based on number of items and bounding boxes found
+            let confidence = min(1.0, Double(ocrResult.items.count) / 10.0 + Double(ocrResult.boundingBoxes.count) / 20.0)
             
             guard confidence >= Constants.scanningConfidenceThreshold else {
                 // Low confidence, reset to searching
@@ -88,9 +95,6 @@ class ScanViewModel: ObservableObject {
                 }
                 return
             }
-            
-            // Extract text for stability comparison
-            let detectedText = observations.compactMap { $0.topCandidates(1).first?.string ?? "" }.joined(separator: " ")
             
             await MainActor.run {
                 // Check stability
@@ -121,10 +125,12 @@ class ScanViewModel: ObservableObject {
                 } else {
                     // New candidate detected
                     self.scanningState = .receiptCandidateDetected
+                    let imageSize = CGSize(width: image.size.width, height: image.size.height)
                     self.receiptCandidate = ReceiptCandidate(
                         boundingRectangle: bestRectangle,
                         confidenceScore: confidence,
-                        detectedText: detectedText
+                        detectedText: detectedText,
+                        imageSize: imageSize
                     )
                     self.stabilityStartTime = Date()
                     self.lastCandidateText = detectedText
@@ -212,9 +218,19 @@ class ScanViewModel: ObservableObject {
                 // Use unified processing method
                 let result = try await ocrService.processImageUnified(image, sourceType: "live")
                 await MainActor.run {
-                    self.scanResult = result
-                    self.scanningState = .preview
-                    self.isLoading = false
+                    // Check if result is empty (no items and no totals)
+                    if isOCRResultEmpty(result) {
+                        self.errorMessage = "Nothing Detected"
+                        self.scanningState = .searchingForReceipt
+                        self.scanResult = nil // Don't set scanResult to prevent navigation
+                        self.frozenImage = nil
+                        self.isLoading = false
+                        self.scheduleErrorDismiss()
+                    } else {
+                        self.scanResult = result
+                        self.scanningState = .preview
+                        self.isLoading = false
+                    }
                 }
             } catch {
                 await MainActor.run {
@@ -222,6 +238,7 @@ class ScanViewModel: ObservableObject {
                     self.scanningState = .searchingForReceipt
                     self.frozenImage = nil
                     self.isLoading = false
+                    self.scheduleErrorDismiss()
                 }
             }
         }
@@ -239,9 +256,19 @@ class ScanViewModel: ObservableObject {
                 // Use unified processing method
                 let result = try await ocrService.processImageUnified(image, sourceType: "uploaded")
                 await MainActor.run {
-                    self.scanResult = result
-                    self.scanningState = .preview
-                    self.isLoading = false
+                    // Check if result is empty (no items and no totals)
+                    if isOCRResultEmpty(result) {
+                        self.errorMessage = "Nothing Detected"
+                        self.scanningState = .searchingForReceipt
+                        self.scanResult = nil // Don't set scanResult to prevent navigation
+                        self.frozenImage = nil
+                        self.isLoading = false
+                        self.scheduleErrorDismiss()
+                    } else {
+                        self.scanResult = result
+                        self.scanningState = .preview
+                        self.isLoading = false
+                    }
                 }
             } catch {
                 await MainActor.run {
@@ -249,6 +276,7 @@ class ScanViewModel: ObservableObject {
                     self.scanningState = .searchingForReceipt
                     self.frozenImage = nil
                     self.isLoading = false
+                    self.scheduleErrorDismiss()
                 }
             }
         }
@@ -263,6 +291,87 @@ class ScanViewModel: ObservableObject {
         frozenImage = nil
         scanResult = nil
         errorMessage = nil
+        errorDismissTask?.cancel()
+        errorDismissTask = nil
+    }
+    
+    /// Check if OCR result is empty (no items and no totals/subtotals)
+    private func isOCRResultEmpty(_ result: OCRResult) -> Bool {
+        return result.items.isEmpty && result.total == nil && result.subtotal == nil
+    }
+    
+    /// Schedule automatic dismissal of error message after 4 seconds
+    private func scheduleErrorDismiss() {
+        errorDismissTask?.cancel()
+        errorDismissTask = Task { @MainActor in
+            do {
+                try await Task.sleep(nanoseconds: 4_000_000_000) // 4 seconds
+                // Check if task was cancelled before clearing error message
+                guard !Task.isCancelled else { return }
+                self.errorMessage = nil
+            } catch {
+                // Task was cancelled, do nothing
+            }
+        }
+    }
+    
+    /// Convert image coordinates to view coordinates
+    /// Assumes videoGravity is .resizeAspectFill (as set in CameraViewController)
+    /// - Parameters:
+    ///   - imageRect: Rectangle in image coordinates
+    ///   - imageSize: Size of the original image
+    ///   - viewSize: Size of the view/preview layer
+    /// - Returns: Rectangle in view coordinates
+    func convertImageRectToViewRect(
+        imageRect: CGRect,
+        imageSize: CGSize,
+        viewSize: CGSize
+    ) -> CGRect {
+        // Normalize imageRect to 0-1 coordinates
+        let normalizedRect = CGRect(
+            x: imageRect.origin.x / imageSize.width,
+            y: imageRect.origin.y / imageSize.height,
+            width: imageRect.width / imageSize.width,
+            height: imageRect.height / imageSize.height
+        )
+        
+        // Calculate aspect ratios
+        let imageAspect = imageSize.width / imageSize.height
+        let viewAspect = viewSize.width / viewSize.height
+        
+        var convertedRect: CGRect
+        
+        // For resizeAspectFill, the image is scaled to fill the view, cropping if necessary
+        if imageAspect > viewAspect {
+            // Image is wider - height fills view, width is cropped
+            let scaledHeight = viewSize.height
+            let scaledWidth = imageAspect * scaledHeight
+            let xOffset = (scaledWidth - viewSize.width) / 2
+            
+            convertedRect = CGRect(
+                x: normalizedRect.origin.x * scaledWidth - xOffset,
+                y: normalizedRect.origin.y * scaledHeight,
+                width: normalizedRect.width * scaledWidth,
+                height: normalizedRect.height * scaledHeight
+            )
+        } else {
+            // Image is taller - width fills view, height is cropped
+            let scaledWidth = viewSize.width
+            let scaledHeight = scaledWidth / imageAspect
+            let yOffset = (scaledHeight - viewSize.height) / 2
+            
+            convertedRect = CGRect(
+                x: normalizedRect.origin.x * scaledWidth,
+                y: normalizedRect.origin.y * scaledHeight - yOffset,
+                width: normalizedRect.width * scaledWidth,
+                height: normalizedRect.height * scaledHeight
+            )
+        }
+        
+        // Clamp to view bounds
+        convertedRect = convertedRect.intersection(CGRect(origin: .zero, size: viewSize))
+        
+        return convertedRect
     }
 }
 

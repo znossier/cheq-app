@@ -1,6 +1,6 @@
 //
 //  AssignItemsViewModel.swift
-//  FairShare
+//  Cheq
 //
 //  Assign items view model
 //

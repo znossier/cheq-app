@@ -1,6 +1,6 @@
 //
 //  Person.swift
-//  FairShare
+//  Cheq
 //
 //  Person model for bill splitting
 //

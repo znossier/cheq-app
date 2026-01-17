@@ -1,6 +1,6 @@
 //
 //  Constants.swift
-//  FairShare
+//  Cheq
 //
 //  App-wide constants
 //
@@ -8,7 +8,9 @@
 import Foundation
 
 enum Constants {
-    static let maxReceiptsToStore = 5
+    /// Maximum number of receipts to display on the home screen
+    /// All receipts are stored per user, but only this many are shown on home
+    static let maxReceiptsToStore = 7 // Used for home screen display limit
     static let minimumTapTargetSize: CGFloat = 44.0
     
     // Scanning configuration
@@ -20,5 +22,17 @@ enum Constants {
     
     // Feature flags
     static let enableLiveScanning = false // Disabled during pipeline hardening
+    
+    // User preferences defaults
+    static let defaultVATPercentage: Decimal = 0
+    static let defaultServiceFeePercentage: Decimal = 0
+    static let defaultAutoSaveReceipts: Bool = true
+    static let defaultHapticFeedback: Bool = true
+    
+    // UserDefaults keys for preferences
+    static let defaultVATKey = "defaultVATPercentage"
+    static let defaultServiceFeeKey = "defaultServiceFeePercentage"
+    static let autoSaveKey = "autoSaveReceipts"
+    static let hapticFeedbackKey = "hapticFeedbackEnabled"
 }
 
