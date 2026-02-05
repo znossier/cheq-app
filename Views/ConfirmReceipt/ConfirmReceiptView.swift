@@ -118,6 +118,28 @@ struct ConfirmReceiptView: View {
                             viewModel.setEditingDraft(id: itemId, name: name, unitPrice: unitPrice, quantity: quantity)
                         },
                         onDone: { name, unitPrice, quantity in
+                            // #region agent log
+                            if let logFile = FileHandle(forWritingAtPath: "/Users/zosman/cheq/.cursor/debug.log") {
+                                let logData = try! JSONSerialization.data(withJSONObject: [
+                                    "location": "ConfirmReceiptView.swift:120",
+                                    "message": "onDone closure called",
+                                    "data": [
+                                        "itemId": itemId.uuidString,
+                                        "name": name,
+                                        "unitPrice": unitPrice.doubleValue,
+                                        "quantity": quantity
+                                    ],
+                                    "timestamp": Int(Date().timeIntervalSince1970 * 1000),
+                                    "sessionId": "debug-session",
+                                    "runId": "run1",
+                                    "hypothesisId": "A"
+                                ])
+                                logFile.seekToEndOfFile()
+                                logFile.write(logData)
+                                logFile.write("\n".data(using: .utf8)!)
+                                logFile.closeFile()
+                            }
+                            // #endregion
                             // Commit the current values directly to the item
                             // This is more reliable than relying on the draft
                             viewModel.updateItem(
@@ -127,6 +149,30 @@ struct ConfirmReceiptView: View {
                                 quantity: quantity,
                                 commitDraft: true
                             )
+                            // #region agent log
+                            if let logFile = FileHandle(forWritingAtPath: "/Users/zosman/cheq/.cursor/debug.log") {
+                                let updatedItem = viewModel.receipt.items.first(where: { $0.id == itemId })
+                                let logData = try! JSONSerialization.data(withJSONObject: [
+                                    "location": "ConfirmReceiptView.swift:131",
+                                    "message": "After updateItem - checking receipt",
+                                    "data": [
+                                        "itemId": itemId.uuidString,
+                                        "updatedItemName": updatedItem?.name ?? "nil",
+                                        "updatedItemQuantity": updatedItem?.quantity ?? -1,
+                                        "updatedItemUnitPrice": updatedItem?.unitPrice.doubleValue ?? -1,
+                                        "receiptItemsCount": viewModel.receipt.items.count
+                                    ],
+                                    "timestamp": Int(Date().timeIntervalSince1970 * 1000),
+                                    "sessionId": "debug-session",
+                                    "runId": "run1",
+                                    "hypothesisId": "B"
+                                ])
+                                logFile.seekToEndOfFile()
+                                logFile.write(logData)
+                                logFile.write("\n".data(using: .utf8)!)
+                                logFile.closeFile()
+                            }
+                            // #endregion
                             viewModel.clearEditingDraft(id: itemId)
                             viewModel.editingItemId = nil
                         },
@@ -295,6 +341,29 @@ struct ReceiptItemRow: View {
     // Computed property to get the current item from view model (always up-to-date)
     var currentItem: ReceiptItem {
         let found = viewModel.receipt.items.first(where: { $0.id == item.id }) ?? item
+        // #region agent log
+        if let logFile = FileHandle(forWritingAtPath: "/Users/zosman/cheq/.cursor/debug.log") {
+            let logData = try! JSONSerialization.data(withJSONObject: [
+                "location": "ConfirmReceiptView.swift:394",
+                "message": "currentItem computed",
+                "data": [
+                    "itemId": item.id.uuidString,
+                    "foundName": found.name,
+                    "foundQuantity": found.quantity,
+                    "foundUnitPrice": found.unitPrice.doubleValue,
+                    "receiptItemsCount": viewModel.receipt.items.count
+                ],
+                "timestamp": Int(Date().timeIntervalSince1970 * 1000),
+                "sessionId": "debug-session",
+                "runId": "run1",
+                "hypothesisId": "C"
+            ])
+            logFile.seekToEndOfFile()
+            logFile.write(logData)
+            logFile.write("\n".data(using: .utf8)!)
+            logFile.closeFile()
+        }
+        // #endregion
         return found
     }
     
@@ -349,8 +418,57 @@ struct ReceiptItemRow: View {
     }
     
     var body: some View {
-        contentView
+        // Explicitly access currentItem properties to ensure SwiftUI tracks changes
+        // This ensures the view re-evaluates when receipt items are updated
+        let itemName = currentItem.name
+        let itemQuantity = currentItem.quantity
+        let itemUnitPrice = currentItem.unitPrice
+        // #region agent log
+        if let logFile = FileHandle(forWritingAtPath: "/Users/zosman/cheq/.cursor/debug.log") {
+            let logData = try! JSONSerialization.data(withJSONObject: [
+                "location": "ConfirmReceiptView.swift:351",
+                "message": "ReceiptItemRow body evaluated",
+                "data": [
+                    "itemId": item.id.uuidString,
+                    "itemName": itemName,
+                    "itemQuantity": itemQuantity,
+                    "itemUnitPrice": itemUnitPrice.doubleValue,
+                    "isEditing": isEditing,
+                    "receiptItemsCount": viewModel.receipt.items.count
+                ],
+                "timestamp": Int(Date().timeIntervalSince1970 * 1000),
+                "sessionId": "debug-session",
+                "runId": "run1",
+                "hypothesisId": "D"
+            ])
+            logFile.seekToEndOfFile()
+            logFile.write(logData)
+            logFile.write("\n".data(using: .utf8)!)
+            logFile.closeFile()
+        }
+        // #endregion
+        return contentView
             .onChange(of: viewModel.receipt.items) {
+                // #region agent log
+                if let logFile = FileHandle(forWritingAtPath: "/Users/zosman/cheq/.cursor/debug.log") {
+                    let logData = try! JSONSerialization.data(withJSONObject: [
+                        "location": "ConfirmReceiptView.swift:353",
+                        "message": "onChange receipt.items triggered",
+                        "data": [
+                            "itemId": item.id.uuidString,
+                            "itemsCount": viewModel.receipt.items.count
+                        ],
+                        "timestamp": Int(Date().timeIntervalSince1970 * 1000),
+                        "sessionId": "debug-session",
+                        "runId": "run1",
+                        "hypothesisId": "D"
+                    ])
+                    logFile.seekToEndOfFile()
+                    logFile.write(logData)
+                    logFile.write("\n".data(using: .utf8)!)
+                    logFile.closeFile()
+                }
+                // #endregion
                 // Force view refresh when receipt items change
                 // This ensures currentItem is re-evaluated with latest values
             }
@@ -489,11 +607,81 @@ struct ReceiptItemRow: View {
                         }
                         Spacer()
                         Button {
+                            // #region agent log
+                            if let logFile = FileHandle(forWritingAtPath: "/Users/zosman/cheq/.cursor/debug.log") {
+                                let logData = try! JSONSerialization.data(withJSONObject: [
+                                    "location": "ConfirmReceiptView.swift:496",
+                                    "message": "Done button tapped",
+                                    "data": [
+                                        "itemId": item.id.uuidString,
+                                        "name": name,
+                                        "unitPrice": unitPrice.doubleValue,
+                                        "quantity": quantity,
+                                        "isEditing": isEditing
+                                    ],
+                                    "timestamp": Int(Date().timeIntervalSince1970 * 1000),
+                                    "sessionId": "debug-session",
+                                    "runId": "run1",
+                                    "hypothesisId": "A"
+                                ])
+                                logFile.seekToEndOfFile()
+                                logFile.write(logData)
+                                logFile.write("\n".data(using: .utf8)!)
+                                logFile.closeFile()
+                            }
+                            // #endregion
                             // Pass current values directly to onDone - this will commit the changes
                             let validQuantity = max(1, quantity)
+                            // #region agent log
+                            if let logFile = FileHandle(forWritingAtPath: "/Users/zosman/cheq/.cursor/debug.log") {
+                                let logData = try! JSONSerialization.data(withJSONObject: [
+                                    "location": "ConfirmReceiptView.swift:499",
+                                    "message": "Calling onDone",
+                                    "data": [
+                                        "itemId": item.id.uuidString,
+                                        "name": name,
+                                        "unitPrice": unitPrice.doubleValue,
+                                        "quantity": validQuantity
+                                    ],
+                                    "timestamp": Int(Date().timeIntervalSince1970 * 1000),
+                                    "sessionId": "debug-session",
+                                    "runId": "run1",
+                                    "hypothesisId": "E"
+                                ])
+                                logFile.seekToEndOfFile()
+                                logFile.write(logData)
+                                logFile.write("\n".data(using: .utf8)!)
+                                logFile.closeFile()
+                            }
+                            // #endregion
                             onDone(name, unitPrice, validQuantity)
                             // After onDone updates the view model, sync local state with the updated item
                             // This ensures the non-editing view displays the correct values
+                            // #region agent log
+                            if let logFile = FileHandle(forWritingAtPath: "/Users/zosman/cheq/.cursor/debug.log") {
+                                let logData = try! JSONSerialization.data(withJSONObject: [
+                                    "location": "ConfirmReceiptView.swift:502",
+                                    "message": "After onDone - syncing state",
+                                    "data": [
+                                        "itemId": item.id.uuidString,
+                                        "currentItemName": currentItem.name,
+                                        "currentItemQuantity": currentItem.quantity,
+                                        "currentItemUnitPrice": currentItem.unitPrice.doubleValue,
+                                        "localName": name,
+                                        "localQuantity": quantity,
+                                        "localUnitPrice": unitPrice.doubleValue
+                                    ],
+                                    "timestamp": Int(Date().timeIntervalSince1970 * 1000),
+                                    "sessionId": "debug-session",
+                                    "runId": "run1",
+                                    "hypothesisId": "C"
+                                ])
+                                logFile.seekToEndOfFile()
+                                logFile.write(logData)
+                                logFile.write("\n".data(using: .utf8)!)
+                                logFile.closeFile()
+                            }
+                            // #endregion
                             name = currentItem.name
                             unitPrice = currentItem.unitPrice
                             quantity = currentItem.quantity

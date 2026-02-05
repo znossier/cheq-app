@@ -38,16 +38,17 @@ struct OnboardingView: View {
                 
                 // Content respects safe areas
                 VStack(spacing: 0) {
-                    // Skip button - add safe area top padding
+                    // Skip button - add safe area top padding with horizontal margin
                     HStack {
                         Spacer()
                         Button("Skip") {
                             completeOnboarding()
                         }
-                        .padding(.horizontal)
+                        .padding(.horizontal, 16)
                         .padding(.vertical, 8)
                     }
-                    .padding(.top, geometry.safeAreaInsets.top > 0 ? geometry.safeAreaInsets.top + 8 : 8)
+                    .padding(.top, max(geometry.safeAreaInsets.top, 44) + 8)
+                    .padding(.trailing, 16)
                     
                     // Carousel
                     TabView(selection: $currentPage) {
@@ -59,7 +60,7 @@ struct OnboardingView: View {
                     .tabViewStyle(.page)
                     .indexViewStyle(.page(backgroundDisplayMode: .always))
                     
-                    // Continue button - add safe area bottom padding
+                    // Continue button - add safe area bottom padding with horizontal margin
                     Button(action: {
                         if currentPage < pages.count - 1 {
                             withAnimation {
@@ -77,8 +78,8 @@ struct OnboardingView: View {
                             .background(currentPage < pages.count - 1 ? Color.appSurface : Color.appMint)
                             .cornerRadius(12)
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom, geometry.safeAreaInsets.bottom > 0 ? geometry.safeAreaInsets.bottom + 16 : 16)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, max(geometry.safeAreaInsets.bottom, 20) + 16)
                 }
             }
         }

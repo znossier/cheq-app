@@ -4,7 +4,7 @@ Your FairShare project is now ready to be pushed to GitHub! Follow these steps t
 
 ## Step 1: Create a New Repository on GitHub
 
-1. Go to [GitHub](https://github.com) and sign in to your account (username: `z-nossier`)
+1. Go to [GitHub](https://github.com) and sign in to your account (username: `znossier`)
 2. Click the **"+"** icon in the top right corner and select **"New repository"**
 3. Fill in the repository details:
    - **Repository name**: `fair-share` (or any name you prefer)
@@ -21,7 +21,7 @@ After creating the repository, GitHub will show you setup instructions. Use thes
 cd /Users/zosman/fair-share
 
 # Add the remote repository (replace with your actual repository URL)
-git remote add origin https://github.com/z-nossier/fair-share.git
+git remote add origin https://github.com/znossier/fair-share.git
 
 # Verify the remote was added
 git remote -v
@@ -35,7 +35,7 @@ git push -u origin main
 
 ## Step 3: Verify on GitHub
 
-1. Go to your repository page on GitHub: `https://github.com/z-nossier/fair-share`
+1. Go to your repository page on GitHub: `https://github.com/znossier/fair-share`
 2. You should see all your files, including:
    - README.md
    - LICENSE (MIT License)
@@ -55,7 +55,7 @@ Or set it globally for all repositories:
 
 ```bash
 git config --global user.email "your-email@example.com"
-git config --global user.name "z-nossier"
+git config --global user.name "znossier"
 ```
 
 ## Troubleshooting

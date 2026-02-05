@@ -92,7 +92,52 @@ class ConfirmReceiptViewModel: ObservableObject {
     }
     
     func updateItem(id: UUID, name: String? = nil, unitPrice: Decimal? = nil, quantity: Int? = nil, commitDraft: Bool = false) {
-        guard let index = receipt.items.firstIndex(where: { $0.id == id }) else { return }
+        // #region agent log
+        if let logFile = FileHandle(forWritingAtPath: "/Users/zosman/cheq/.cursor/debug.log") {
+            let logData = try! JSONSerialization.data(withJSONObject: [
+                "location": "ConfirmReceiptViewModel.swift:94",
+                "message": "updateItem called",
+                "data": [
+                    "id": id.uuidString,
+                    "name": name ?? "nil",
+                    "unitPrice": unitPrice?.doubleValue ?? -1,
+                    "quantity": quantity ?? -1,
+                    "commitDraft": commitDraft
+                ],
+                "timestamp": Int(Date().timeIntervalSince1970 * 1000),
+                "sessionId": "debug-session",
+                "runId": "run1",
+                "hypothesisId": "A"
+            ])
+            logFile.seekToEndOfFile()
+            logFile.write(logData)
+            logFile.write("\n".data(using: .utf8)!)
+            logFile.closeFile()
+        }
+        // #endregion
+        guard let index = receipt.items.firstIndex(where: { $0.id == id }) else {
+            // #region agent log
+            if let logFile = FileHandle(forWritingAtPath: "/Users/zosman/cheq/.cursor/debug.log") {
+                let logData = try! JSONSerialization.data(withJSONObject: [
+                    "location": "ConfirmReceiptViewModel.swift:95",
+                    "message": "updateItem - item not found",
+                    "data": [
+                        "id": id.uuidString,
+                        "receiptItemsCount": receipt.items.count
+                    ],
+                    "timestamp": Int(Date().timeIntervalSince1970 * 1000),
+                    "sessionId": "debug-session",
+                    "runId": "run1",
+                    "hypothesisId": "E"
+                ])
+                logFile.seekToEndOfFile()
+                logFile.write(logData)
+                logFile.write("\n".data(using: .utf8)!)
+                logFile.closeFile()
+            }
+            // #endregion
+            return
+        }
         
         // If commitDraft is true, we're actually updating the item (user tapped Done)
         // Otherwise, we're just storing a draft (user is still editing)
@@ -113,24 +158,75 @@ class ConfirmReceiptViewModel: ObservableObject {
             // Update the items array
             var updatedItems = receipt.items
             updatedItems[index] = updatedItem
-            // Reassign the entire receipt to trigger @Published update
+            // Calculate new totals based on updated items
+            let newSubtotal = updatedItems.reduce(Decimal(0)) { $0 + $1.totalPrice }
+            let newTotal = newSubtotal + (newSubtotal * receipt.vatPercentage / 100) + (newSubtotal * receipt.servicePercentage / 100)
+            // Reassign the entire receipt with updated items and totals in a single operation
             // This is necessary because Receipt is a struct, so modifying nested properties doesn't trigger @Published
-            let newReceipt = Receipt(
+            // #region agent log
+            if let logFile = FileHandle(forWritingAtPath: "/Users/zosman/cheq/.cursor/debug.log") {
+                let logData = try! JSONSerialization.data(withJSONObject: [
+                    "location": "ConfirmReceiptViewModel.swift:121",
+                    "message": "Before receipt reassignment",
+                    "data": [
+                        "id": id.uuidString,
+                        "oldReceiptId": receipt.id.uuidString,
+                        "oldItemsCount": receipt.items.count,
+                        "newItemsCount": updatedItems.count,
+                        "updatedItemName": updatedItem.name,
+                        "updatedItemQuantity": updatedItem.quantity,
+                        "updatedItemUnitPrice": updatedItem.unitPrice.doubleValue
+                    ],
+                    "timestamp": Int(Date().timeIntervalSince1970 * 1000),
+                    "sessionId": "debug-session",
+                    "runId": "run1",
+                    "hypothesisId": "B"
+                ])
+                logFile.seekToEndOfFile()
+                logFile.write(logData)
+                logFile.write("\n".data(using: .utf8)!)
+                logFile.closeFile()
+            }
+            // #endregion
+            receipt = Receipt(
                 id: receipt.id,
                 items: updatedItems,
-                subtotal: receipt.subtotal,
+                subtotal: newSubtotal,
                 vatPercentage: receipt.vatPercentage,
                 servicePercentage: receipt.servicePercentage,
-                total: receipt.total,
+                total: newTotal,
                 timestamp: receipt.timestamp,
                 people: receipt.people
             )
-            receipt = newReceipt
+            // #region agent log
+            if let logFile = FileHandle(forWritingAtPath: "/Users/zosman/cheq/.cursor/debug.log") {
+                let logData = try! JSONSerialization.data(withJSONObject: [
+                    "location": "ConfirmReceiptViewModel.swift:132",
+                    "message": "After receipt reassignment",
+                    "data": [
+                        "id": id.uuidString,
+                        "receiptId": receipt.id.uuidString,
+                        "receiptItemsCount": receipt.items.count,
+                        "finalItemName": receipt.items[index].name,
+                        "finalItemQuantity": receipt.items[index].quantity,
+                        "finalItemUnitPrice": receipt.items[index].unitPrice.doubleValue
+                    ],
+                    "timestamp": Int(Date().timeIntervalSince1970 * 1000),
+                    "sessionId": "debug-session",
+                    "runId": "run1",
+                    "hypothesisId": "B"
+                ])
+                logFile.seekToEndOfFile()
+                logFile.write(logData)
+                logFile.write("\n".data(using: .utf8)!)
+                logFile.closeFile()
+            }
+            // #endregion
             // Force objectWillChange to ensure view updates
             objectWillChange.send()
             // Clear draft since we've committed it
             editingItemDrafts.removeValue(forKey: id)
-            recalculateTotals()
+            updateValidity()
         } else {
             // Just store draft, don't update item (prevents view recreation)
             // Totals are already recalculated in setEditingDraft
@@ -139,7 +235,17 @@ class ConfirmReceiptViewModel: ObservableObject {
     }
     
     func deleteItem(id: UUID) {
-        receipt.items.removeAll { $0.id == id }
+        let filteredItems = receipt.items.filter { $0.id != id }
+        receipt = Receipt(
+            id: receipt.id,
+            items: filteredItems,
+            subtotal: receipt.subtotal,
+            vatPercentage: receipt.vatPercentage,
+            servicePercentage: receipt.servicePercentage,
+            total: receipt.total,
+            timestamp: receipt.timestamp,
+            people: receipt.people
+        )
         recalculateTotals()
     }
     
@@ -158,8 +264,19 @@ class ConfirmReceiptViewModel: ObservableObject {
     }
     
     private func recalculateTotals() {
-        receipt.subtotal = receipt.items.reduce(Decimal(0)) { $0 + $1.totalPrice }
-        receipt.total = receipt.calculatedTotal
+        let newSubtotal = receipt.items.reduce(Decimal(0)) { $0 + $1.totalPrice }
+        let newTotal = newSubtotal + (newSubtotal * receipt.vatPercentage / 100) + (newSubtotal * receipt.servicePercentage / 100)
+        
+        receipt = Receipt(
+            id: receipt.id,
+            items: receipt.items,
+            subtotal: newSubtotal,
+            vatPercentage: receipt.vatPercentage,
+            servicePercentage: receipt.servicePercentage,
+            total: newTotal,
+            timestamp: receipt.timestamp,
+            people: receipt.people
+        )
         updateValidity()
     }
     
